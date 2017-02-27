@@ -27,7 +27,11 @@ project_name: facebook972609636203996
 
 and execute below command:
 
-ansible-playbook app.yaml (This will deploy the ldap serevr and do the configurations and test the configurations are correclty applied)
+```
+ansible-playbook app.yaml 
+```
+
+This will deploy the ldap serevr/group/access permissions and do the configurations and test the configurations 
 
 What is the NTP stratum of the created host?
 
@@ -40,9 +44,10 @@ What is an acceptable load average threshold for the host?
 
 To deploy bastion(jump server) execute
 
+```
 ansible-playbook app2.yaml
-
-(Thsi will remove external ssh access for ldap and create a new server where user can use to connect to the ldap server)
+```
+Thsi will remove external ssh access for ldap and create a new server where user can use to connect to the ldap server
 
 
 
