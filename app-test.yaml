@@ -1,0 +1,6 @@
+- hosts: ldapservers
+  remote_user: centos
+  become: true
+  tasks:
+  - name: test ldap service
+    shell: systemctl status slapd
