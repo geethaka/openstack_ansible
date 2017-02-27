@@ -7,7 +7,7 @@
        auth:
          auth_url: http://8.43.86.2:5000/v2.0
          username: facebook972609636203996
-         password: oJE6E8WqCsbhTrvl
+         password: password
          project_name: facebook972609636203996
        state: present
        name: private
@@ -17,7 +17,7 @@
        auth:
          auth_url: http://8.43.86.2:5000/v2.0
          username: facebook972609636203996
-         password: oJE6E8WqCsbhTrvl
+         password: password
          project_name: facebook972609636203996
        security_group: private
        protocol: tcp
@@ -30,7 +30,7 @@
        auth:
          auth_url: http://8.43.86.2:5000/v2.0
          username: facebook972609636203996
-         password: oJE6E8WqCsbhTrvl
+         password: password
          project_name: facebook972609636203996
        name: ldapserver
        image: CentOS7
@@ -70,43 +70,69 @@
        owner: centos
        group: centos
        mode: 0600
+       
   - name: add group
     group: name=techops_dba state=present system=yes
+
   - name: add group to sudoers
     lineinfile:
       dest: '/etc/sudoers'
       state: present
       line: '%techops_dba  ALL=(ALL)       ALL'
+
   - name: add group to access.conf
     lineinfile:
       dest: '/etc/security/access.conf'
       state: present
       line: '+ : techops_dba : ALL'
+
   - name: install ntp
     yum:
      name: ntp
      state: present
+
   - name: start ntpd
     service:
      name: ntpd
      state: started
+
   - name: test ldap is working
     command: systemctl status slapd
     ignore_errors: yes
     changed_when: false
     failed_when: "'Active: inactive' in ldap_status.stdout"
     register: ldap_status
-  
+
+  - name: Get NTP stratum
+    command: bash -c "ntpdc -c sysinfo | grep -i stratum"
+    register: ntp_status
+    
+  - debug: var=ntp_status.stdout
+ 
   - name: test group is added
-    command: cat /etc/group | grep -i techops_dba | wc -l
+    command: bash -c "cat /etc/group | grep -i techops_dba | wc -l" 
     ignore_errors: yes
     changed_when: false
-    failed_when: "group_status.stdout = 1"
+    failed_when: " '0' in group_status.stdout"
     register: group_status
 
-  roles:
-    - name: install openldap server
-      role: openldap_server
-      openldap_server_domain_name: example.com
-      openldap_server_rootpw: passme
-      openldap_server_enable_ssl: false
+  - debug: var=group_status.stdout
+
+  - name: test sudoers files
+    command: bash -c "grep '%techops_dba  ALL=(ALL)       ALL' /etc/sudoers | wc -l"
+    ignore_errors: yes
+    changed_when: false
+    failed_when: " '0' in sudoers_status.stdout"
+    register: sudoers_status
+
+  - debug: var=sudoers_status.stdout
+
+  - name: test access.conf files
+    command: bash -c "grep '+ ":" techops_dba ":" ALL' /etc/security/access.conf | wc -l"
+    ignore_errors: yes
+    changed_when: false
+    failed_when: " '0' in access_status.stdout"
+    register: access_status
+
+  - debug: var=access_status.stdout
+

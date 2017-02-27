@@ -56,10 +56,18 @@
        meta:
         hostname: bastion.localdomain
       register: bastion
+    - name: check ldap ip
+      os_server_facts:
+        server: ldapserver
+      register: ldap
 
     - name: Add bastion Instance to Inventory
       add_host: name=bastion groups=bastionservers
               ansible_ssh_host={{ bastion.server.public_v4 }}
+     
+    - name: Add ldap Instance to Inventory
+      add_host: name=ldap groups=ldapservers
+              ansible_ssh_host={{ ldap.server.private_v4 }}
 
 - hosts: bastionservers
   remote_user: centos
